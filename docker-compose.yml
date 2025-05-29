@@ -1,0 +1,64 @@
+version: '3.8'
+ 
+services:
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: movie_web_user
+      POSTGRES_DB: movie_web_backend
+      POSTGRES_PASSWORD: YourPasswordHere
+    networks:
+      - p-stream-network
+ 
+  p-stream-backend:
+    image: ghcr.io/p-stream/backend:latest
+    restart: unless-stopped
+    environment:
+      MWB_SERVER__CORS: "https://movie-backend.example.tld https://movie.example.tld"
+      MWB_SERVER__PORT: 8080
+      MWB_POSTGRES__CONNECTION: postgresql://movie_web_user:YourPasswordHere@postgres:5432/movie_web_backend
+      MWB_CRYPTO__SESSION_SECRET: 32CHARACTERLONGSECRET
+      MWB_META__NAME: Server name
+      MWB_META__DESCRIPTION: Server Description
+      MWB_POSTGRES__MIGRATE_ON_BOOT: "true"
+      MWB_SERVER__TRUSTPROXY: "true"
+      MWB_SERVER__TRUSTCLOUDFLARE: "true"
+      # This is needed to resolve errors running migrations on some platforms - does not affect the application
+      MIKRO_ORM_MIGRATIONS_DISABLE_FOREIGN_KEYS: "false"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - p-stream-network
+ 
+  p-stream-frontend:
+    build:
+      context: https://github.com/p-stream/p-stream.git
+      args:
+        TMDB_READ_API_KEY: "YourTMDBReadAPIKeyHere"
+        CORS_PROXY_URL: "https://cors.example.tld https://second.cors.example.tld"
+        BACKEND_URL: "https://backend.example.tld"
+        DMCA_EMAIL: "YourEmail"
+        PWA_ENABLED: "true"
+        APP_DOMAIN: "YourDomainHere"
+        OPENSEARCH_ENABLED: "true"
+        GA_ID: "Google ID Here"
+    ports:
+      - "80:80"
+    networks:
+      - p-stream-network
+    restart: unless-stopped
+ 
+  p-stream-proxy:
+    image: ghcr.io/p-stream/simple-proxy:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - p-stream-network
+    restart: unless-stopped
+ 
+networks:
+  p-stream-network:
+    driver: bridge
