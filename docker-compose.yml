@@ -7,20 +7,20 @@ services:
     environment:
       POSTGRES_USER: movie_web_user
       POSTGRES_DB: movie_web_backend
-      POSTGRES_PASSWORD: YourPasswordHere
+      POSTGRES_PASSWORD: vaportw
     networks:
       - p-stream-network
  
   p-stream-backend:
     image: ghcr.io/p-stream/backend:latest
-    restart: unless-stopped
+    restart: unless-stopped4
     environment:
       MWB_SERVER__CORS: "https://movie-backend.example.tld https://movie.example.tld"
       MWB_SERVER__PORT: 8080
       MWB_POSTGRES__CONNECTION: postgresql://movie_web_user:YourPasswordHere@postgres:5432/movie_web_backend
-      MWB_CRYPTO__SESSION_SECRET: 32CHARACTERLONGSECRET
-      MWB_META__NAME: Server name
-      MWB_META__DESCRIPTION: Server Description
+      MWB_CRYPTO__SESSION_SECRET: B*-+0A1F0W1T8018934:/1-`'shc931s
+      MWB_META__NAME: Tenjis movie den
+      MWB_META__DESCRIPTION: ohh yeah
       MWB_POSTGRES__MIGRATE_ON_BOOT: "true"
       MWB_SERVER__TRUSTPROXY: "true"
       MWB_SERVER__TRUSTCLOUDFLARE: "true"
@@ -37,12 +37,12 @@ services:
     build:
       context: https://github.com/p-stream/p-stream.git
       args:
-        TMDB_READ_API_KEY: "YourTMDBReadAPIKeyHere"
+        TMDB_READ_API_KEY: "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3ZDg0ZDNjZDNiYmE0MTk1ZTZiNDI1YmQ0OTA0MWYyMCIsIm5iZiI6MTc0ODQ4NDg2Mi4yOCwic3ViIjoiNjgzN2MyZmU4YWRjNTIzMDFmYjZjNjYyIiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.zpx93Ox4ijgUSooIW1wb1F7EmmDxBivh5LELtsWtgrw"
         CORS_PROXY_URL: "https://cors.example.tld https://second.cors.example.tld"
         BACKEND_URL: "https://backend.example.tld"
         DMCA_EMAIL: "YourEmail"
         PWA_ENABLED: "true"
-        APP_DOMAIN: "YourDomainHere"
+        APP_DOMAIN: "https://lambent-duckanoo-449d21.netlify.app/"
         OPENSEARCH_ENABLED: "true"
         GA_ID: "Google ID Here"
     ports:
