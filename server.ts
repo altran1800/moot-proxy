@@ -1,4 +1,4 @@
-// server.ts
+// server.ts (optional)
 import { createServer } from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,9 +6,6 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log("Starting server.ts...");
-
-// Import compiled Nitro handlers
 const indexHandler = (await import(path.join(__dirname, '.output/server/index.mjs'))).default;
 const tsHandler = (await import(path.join(__dirname, '.output/server/ts-proxy.mjs'))).default;
 const m3u8Handler = (await import(path.join(__dirname, '.output/server/m3u8-proxy.mjs'))).default;
@@ -20,14 +17,13 @@ const server = createServer(async (req, res) => {
     const url = new URL(req.url || '', `http://${req.headers.host}`);
     const query = Object.fromEntries(url.searchParams);
 
-    // Temporary test route
+    // Test route
     if (url.pathname === '/test') {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
       res.end('Server is alive!');
       return;
     }
 
-    // Route handling
     if (url.pathname.startsWith('/ts-proxy')) {
       await tsHandler({ node: { req, res }, path: url.pathname, query });
     } else if (url.pathname.startsWith('/m3u8-proxy')) {
