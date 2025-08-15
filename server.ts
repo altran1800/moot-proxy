@@ -1,9 +1,12 @@
+// server.ts
 import { createServer } from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+console.log("Starting server.ts...");
 
 // Import compiled Nitro handlers
 const indexHandler = (await import(path.join(__dirname, '.output/server/index.mjs'))).default;
@@ -15,17 +18,26 @@ const port = process.env.PORT || 3000;
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url || '', `http://${req.headers.host}`);
+    const query = Object.fromEntries(url.searchParams);
 
+    // Temporary test route
+    if (url.pathname === '/test') {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('Server is alive!');
+      return;
+    }
+
+    // Route handling
     if (url.pathname.startsWith('/ts-proxy')) {
-      await tsHandler({ node: { req, res }, path: url.pathname, query: Object.fromEntries(url.searchParams) });
+      await tsHandler({ node: { req, res }, path: url.pathname, query });
     } else if (url.pathname.startsWith('/m3u8-proxy')) {
-      await m3u8Handler({ node: { req, res }, path: url.pathname, query: Object.fromEntries(url.searchParams) });
+      await m3u8Handler({ node: { req, res }, path: url.pathname, query });
     } else {
-      await indexHandler({ node: { req, res }, path: url.pathname, query: Object.fromEntries(url.searchParams) });
+      await indexHandler({ node: { req, res }, path: url.pathname, query });
     }
   } catch (err: any) {
     console.error('Error in handler:', err);
-    res.statusCode = 500;
+    if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'text/plain' });
     res.end('Internal Server Error');
   }
 });
