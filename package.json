@@ -5,12 +5,8 @@
   "scripts": {
     "prepare": "nitropack prepare",
     "dev": "nitropack dev",
-    "build": "nitropack build",
-    "build:cloudflare": "NITRO_PRESET=cloudflare npm run build",
-    "build:aws": "NITRO_PRESET=aws_lambda npm run build",
-    "build:node": "NITRO_PRESET=node-server npm run build",
-    "build:netlify": "NITRO_PRESET=netlify_edge npm run build",
-    "start": "pnpm build:node && node .output/server/index.mjs",
+    "build": "nitropack build && tsc server.ts --esModuleInterop --module NodeNext --target ESNext --outDir dist",
+    "start": "node dist/server.js",
     "lint": "eslint --ext .ts src/",
     "lint:fix": "eslint --fix --ext .ts src/",
     "preinstall": "npx only-allow pnpm"
@@ -28,7 +24,8 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.10.0",
-    "eslint-plugin-prettier": "^5.2.6"
+    "eslint-plugin-prettier": "^5.2.6",
+    "typescript": "^5.4.0"
   },
   "pnpm": {
     "overrides": {
