@@ -1,6 +1,6 @@
 import { H3Event, EventHandlerRequest } from 'h3';
 import { SignJWT, jwtVerify } from 'jose';
-import { getIp } from '@/utils/ip';
+import { getIp } from '@/utils/ip.js'; // <-- ESM import fix
 
 const turnstileSecret = process.env.TURNSTILE_SECRET ?? null;
 const jwtSecret = process.env.JWT_SECRET ?? null;
@@ -61,7 +61,7 @@ export async function isAllowedToMakeRequest(
         },
       );
       jwtPayload = jwtResult.payload;
-    } catch {}
+    } catch { }
     if (!jwtPayload) return false;
     if (getIp(event) !== jwtPayload.ip) return false;
     return true;

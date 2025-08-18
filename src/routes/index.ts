@@ -1,79 +1,40 @@
-import { getBodyBuffer } from '@/utils/body';
+import { H3Event } from 'h3';
+import { getProxyHeaders, getAfterResponseHeaders } from '@/utils/headers.js';
 import {
-  getProxyHeaders,
-  getAfterResponseHeaders,
-  getBlacklistedHeaders,
-} from '@/utils/headers';
-import {
+  isTurnstileEnabled,
   createTokenIfNeeded,
-  isAllowedToMakeRequest,
   setTokenHeader,
-} from '@/utils/turnstile';
+  isAllowedToMakeRequest
+} from '@/utils/turnstile.js';
 
-export default defineEventHandler(async (event) => {
-  // Handle preflight CORS requests
-  if (isPreflightRequest(event)) {
-    handleCors(event, {});
-    // Ensure the response ends here for preflight
-    event.node.res.statusCode = 204;
-    event.node.res.end();
-    return;
+export default async function handler(event: H3Event) {
+  // Convert Node headers to Fetch Headers
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(event.req.headers)) {
+    if (Array.isArray(value)) {
+      headers.set(key, value.join(', '));
+    } else if (value) {
+      headers.set(key, value);
+    }
   }
 
-  // Reject any other OPTIONS requests
-  if (event.node.req.method === 'OPTIONS') {
-    throw createError({
-      statusCode: 405,
-      statusMessage: 'Method Not Allowed',
-    });
+  // Turnstile check
+  if (isTurnstileEnabled()) {
+    const allowed = await isAllowedToMakeRequest(event);
+    if (!allowed) {
+      return new Response('Not allowed', { status: 403 });
+    }
   }
 
-  // Parse destination URL
-  const destination = getQuery<{ destination?: string }>(event).destination;
-  if (!destination) {
-    return await sendJson({
-      event,
-      status: 200,
-      data: {
-        message: `Proxy is working as expected (v${
-          useRuntimeConfig(event).version
-        })`,
-      },
-    });
-  }
-
-  // Check if allowed to make the request
-  if (!(await isAllowedToMakeRequest(event))) {
-    return await sendJson({
-      event,
-      status: 401,
-      data: {
-        error: 'Invalid or missing token',
-      },
-    });
-  }
-
-  // Read body and create token if needed
-  const body = await getBodyBuffer(event);
+  // Create token if needed
   const token = await createTokenIfNeeded(event);
+  if (token) setTokenHeader(event, token);
 
-  // Proxy the request
-  try {
-    await specificProxyRequest(event, destination, {
-      blacklistedHeaders: getBlacklistedHeaders(),
-      fetchOptions: {
-        redirect: 'follow',
-        headers: getProxyHeaders(event.headers),
-        body,
-      },
-      onResponse(outputEvent, response) {
-        const headers = getAfterResponseHeaders(response.headers, response.url);
-        setResponseHeaders(outputEvent, headers);
-        if (token) setTokenHeader(event, token);
-      },
-    });
-  } catch (e) {
-    console.log('Error fetching', e);
-    throw e;
-  }
-});
+  const proxyHeaders = getProxyHeaders(headers);
+  const responseHeaders = getAfterResponseHeaders(proxyHeaders, event.req.url ?? '');
+
+  return new Response('Hello from proxy!', {
+    status: 200,
+    headers: responseHeaders,
+  });
+}
