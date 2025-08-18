@@ -2,6 +2,7 @@
   "name": "simple-proxy",
   "private": true,
   "version": "2.2.3",
+  "type": "module",
   "scripts": {
     "prepare": "nitropack prepare",
     "dev": "nitropack dev",
