@@ -5,7 +5,7 @@
   "scripts": {
     "prepare": "nitropack prepare",
     "dev": "nitropack dev",
-    "build": "nitropack build && tsc server.ts --esModuleInterop --module NodeNext --target ESNext --outDir dist",
+    "build": "nitropack build && tsc",
     "start": "node dist/server.js",
     "lint": "eslint --ext .ts src/",
     "lint:fix": "eslint --fix --ext .ts src/",
@@ -25,7 +25,8 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.10.0",
     "eslint-plugin-prettier": "^5.2.6",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
   },
   "pnpm": {
     "overrides": {
